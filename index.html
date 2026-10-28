@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>日語N2合格計畫</title>
+<script src="./vocab.js"></script>
+<script src="./grammar.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<style>
+  * { box-sizing: border-box; }
+  body{ margin:0; background:#FAF7F0; }
+  #app { font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif; background:#FAF7F0; color:#2B2620; min-height:100vh; max-width:480px; margin:0 auto; padding-bottom:74px; }
+  .jp{ font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic","Meiryo",sans-serif; }
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+  .header{ background:#2B2620; color:#FAF7F0; padding:18px 18px 12px; position:sticky; top:0; z-index:10; }
+  .header-top{ display:flex; justify-content:space-between; align-items:flex-start; }
+  .kicker{ font-size:11px; letter-spacing:1px; color:#C9A876; margin-bottom:4px; }
+  .h1{ font-size:19px; font-weight:700; }
+  .exam-badge{ background:rgba(255,255,255,0.08); border-radius:12px; padding:8px 14px; text-align:center; min-width:72px; }
+  .exam-num{ font-size:20px; font-weight:700; color:#C9A876; }
+  .exam-label{ font-size:10px; color:#cfc8b8; }
+  .progress-outer{ margin-top:12px; height:5px; border-radius:4px; background:rgba(255,255,255,0.12); overflow:hidden; }
+  .progress-inner{ height:100%; background:linear-gradient(90deg,#A8631F,#C9A876); }
+  main{ padding:16px 16px 8px; display:flex; flex-direction:column; gap:14px; }
+  .section-title{ font-size:16px; font-weight:700; margin-top:4px; }
+  .section-desc{ font-size:13px; color:#6b6356; line-height:1.55; margin-top:-8px; }
+  .sub-title{ font-size:14px; font-weight:700; margin-top:8px; color:#4a4538; }
+  .card{ background:#fff; border:1px solid #E7E1D4; border-radius:14px; padding:14px; }
+  .card.accent{ border-color:#A8631F; background:#FBF0E4; }
+  .card-row{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .stat{ background:#fff; border-radius:12px; padding:10px 8px; border:1px solid #E7E1D4; text-align:center; }
+  .stat-label{ font-size:11px; color:#9a9488; }
+  .stat-value{ font-size:20px; font-weight:700; margin-top:2px; }
+  .primary-btn{ background:#2B2620; color:#fff; border:none; border-radius:10px; padding:12px 18px; font-size:14.5px; font-weight:600; width:100%; }
+  .primary-btn.green{ background:#2f6b4f; }
+  .primary-btn.gray{ background:#8a8275; }
+  .primary-btn:disabled{ opacity:.5; }
+  .toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .toggle-btn{ flex:1; border:1px solid #E7E1D4; background:#fff; border-radius:10px; padding:8px 0; font-size:12.5px; font-weight:600; color:#6b6356; min-width:0; }
+  .toggle-btn.active{ background:#2B2620; color:#fff; border-color:#2B2620; }
+  .label{ font-size:12px; font-weight:600; color:#6b6356; display:block; margin-bottom:4px; margin-top:10px; }
+  .text-input, select{ width:100%; border:1px solid #E7E1D4; border-radius:8px; padding:8px 10px; font-size:14px; background:#fff; }
+  textarea.text-area{ width:100%; border:1px solid #E7E1D4; border-radius:8px; padding:10px; font-size:12px; min-height:90px; resize:vertical; }
+  .empty-hint{ font-size:13px; color:#9a9488; padding:16px 0; text-align:center; }
+  .result-card{ font-size:13px; color:#6b6356; background:#F1EFE9; border-radius:10px; padding:10px; text-align:center; }
+  .quiz-progress{ font-size:12.5px; color:#9a9488; font-weight:600; }
+  .quiz-card{ background:#fff; border:1px solid #E7E1D4; border-radius:16px; padding:16px; }
+  .quiz-tag{ font-size:12px; color:#A8631F; font-weight:700; margin-bottom:6px; }
+  .quiz-prompt{ font-size:30px; font-weight:700; text-align:center; margin:14px 0 6px; line-height:1.35; }
+  .quiz-prompt.sentence{ font-size:19px; text-align:left; font-weight:600; line-height:1.7; }
+  .quiz-prompt.zh{ font-size:22px; }
+  .quiz-sub{ font-size:13px; color:#6b6356; text-align:center; margin-bottom:14px; }
+  .quiz-option{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:1px solid #E7E1D4; background:#FCFBF8; border-radius:10px; padding:12px; font-size:17px; margin-bottom:8px; color:#2B2620; }
+  .quiz-option.correct{ border-color:#2F6B4F; background:#E5F2EA; }
+  .quiz-option.wrong{ border-color:#B9554A; background:#FAEAE7; }
+  .opt-label{ width:24px; height:24px; border-radius:50%; background:#EFEAE0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; }
+  .explain{ background:#F6F3EC; border:1px solid #E7E1D4; border-left:4px solid #2F6B4F; border-radius:10px; padding:10px 12px; margin:6px 0 12px; font-size:14.5px; line-height:1.7; }
+  .explain.bad{ border-left-color:#B9554A; }
+  .explain-head{ font-weight:700; margin-bottom:4px; }
+  .flash-word{ font-size:40px; font-weight:700; text-align:center; margin-top:14px; }
+  .flash-read{ font-size:20px; color:#A8631F; text-align:center; margin-top:4px; }
+  .flash-mean{ font-size:18px; text-align:center; margin:10px 0 16px; }
+  .speak-btn{ border:1px solid #E7E1D4; background:#fff; border-radius:20px; padding:4px 12px; font-size:13px; color:#4a4538; }
+  .new-badge{ display:inline-block; background:#A8631F; color:#fff; font-size:11px; border-radius:99px; padding:2px 8px; margin-left:6px; }
+  .item-row{ display:flex; align-items:center; gap:8px; padding:8px 0; border-top:1px solid #F1EDE4; font-size:14px; }
+  .item-row .w{ font-weight:700; min-width:30%; }
+  .item-row .r{ color:#A8631F; font-size:12.5px; }
+  .item-row .m{ flex:1; color:#4a4538; font-size:13px; }
+  .item-row .st{ font-size:11px; color:#9a9488; white-space:nowrap; }
+  .gram-card{ border-top:1px solid #F1EDE4; padding:10px 0; font-size:13.5px; line-height:1.6; }
+  .gram-card .gp{ font-weight:700; font-size:15px; }
+  .gram-card .gc{ color:#9a9488; font-size:12px; }
+  .wrong-card{ background:#fff; border:1px solid #E7E1D4; border-radius:12px; padding:10px 12px; margin-bottom:6px; font-size:14px; }
+  .wrong-card.level-mid{ border-left:4px solid #A8631F; background:#FFFBF3; }
+  .wrong-card.level-high{ border-left:4px solid #B9554A; background:#FBEEEC; }
+  .wrong-top{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:11px; }
+  .wrong-count{ color:#B9554A; font-weight:600; }
+  .wrong-streak{ color:#2F6B4F; font-weight:600; }
+  .mastered-btn{ margin-top:6px; border:1px solid #2F6B4F; color:#2F6B4F; background:transparent; border-radius:8px; padding:5px 10px; font-size:12px; font-weight:600; }
+  .nav{ position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; background:#fff; border-top:1px solid #E7E1D4; display:flex; padding:6px 0 10px; z-index:20; }
+  .nav-btn{ flex:1; border:none; background:transparent; display:flex; flex-direction:column; align-items:center; color:#9a9488; padding:6px 0; font-size:11px; min-width:0; }
+  .nav-btn.active{ color:#A8631F; }
+  .nav-icon{ font-size:18px; position:relative; }
+  .nav-badge{ position:absolute; top:-6px; right:-14px; background:#B9554A; color:#fff; font-size:9px; border-radius:8px; padding:1px 5px; font-weight:700; }
+  .ov-card{ background:#fff; border:1px solid #E7E1D4; border-radius:16px; padding:16px; }
+  .ov-row{ padding:8px 0; border-top:1px solid #F1EDE4; cursor:pointer; }
+  .ov-label{ font-size:12.5px; color:#4a4538; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ov-go{ color:#A8631F; }
+  .ov-line{ display:flex; align-items:center; gap:6px; margin-top:3px; }
+  .ov-k{ font-size:10.5px; color:#9a9488; width:24px; flex-shrink:0; }
+  .ov-track{ position:relative; flex:1; height:8px; background:#EFE8DA; border-radius:4px; }
+  .ov-fill{ height:100%; border-radius:4px; }
+  .ov-target{ position:absolute; top:-3px; bottom:-3px; width:0; border-left:2px dashed #2B2620; opacity:.55; }
+  .ov-v{ font-size:11.5px; color:#2B2620; width:58px; text-align:right; flex-shrink:0; font-variant-numeric:tabular-nums; }
+  .ov-legend{ display:flex; flex-wrap:wrap; gap:6px 12px; font-size:11px; color:#6b6356; margin-top:10px; }
+  .ov-legend i{ display:inline-block; width:12px; height:8px; border-radius:3px; margin-right:4px; vertical-align:middle; }
+  .ov-legend i.tl{ width:0; height:12px; border-left:2px dashed #2B2620; border-radius:0; opacity:.55; }
+  .unit-actions{ display:flex; gap:8px; margin:4px 0 2px; }
+  .unit-actions .toggle-btn{ padding:6px 0; font-size:12px; }
+</style>
+<script>
+(function(){
+  /* ---------- 設定與資料 ---------- */
+  const EXAM_DEFAULT = "2027-07-04";          // JLPT 7月場：7月第一個星期日
+  const ACC_TARGET = 80;                       // 一般練習正確率目標
+  const WRONG_ACC_TARGET = 95, WRONG_ACC_WARN = 80;   // 錯題本目標
+  const INTERVALS = [1,3,7,14,30,60];          // 答對後下次複習間隔（天）
+  const POS = {n:"名詞", v:"動詞", i:"い形容詞", na:"な形容詞", adv:"副詞"};
+  const NS = "jp_";
+  function load(k,d){ try{ const v=localStorage.getItem(NS+k); return v==null?d:JSON.parse(v); }catch(e){ return d; } }
+  function save(k,v){ try{ localStorage.setItem(NS+k, JSON.stringify(v)); }catch(e){} }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  function todayStr(d){ d=d||new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  function addDays(n){ const d=new Date(); d.setDate(d.getDate()+n); return todayStr(d); }
+  function daysUntil(s){ const t=new Date(s+"T00:00:00"), n=new Date(todayStr()+"T00:00:00"); return Math.round((t-n)/86400000); }
+  function shuffle(a){ a=[...a]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+  const hasKanji = s => /[一-鿿々]/.test(s);
+
+  // 單元：單字（v3-*, v2-*）與文法（g3-*, g2-*）；題目 id：單字 'v:'+單字、文法 'g:'+id
+  const UNITS = [], ITEMS = {};
+  (window.JP_VOCAB||[]).forEach(u=>{
+    const unit = {key:u.unit, title:u.title, level:u.level, kind:"v", ids:[]};
+    u.items.trim().split("\n").forEach(line=>{
+      const [w,r,pos,m] = line.split("|").map(s=>(s||"").trim());
+      if(!w || ITEMS["v:"+w]) return;
+      ITEMS["v:"+w] = {id:"v:"+w, kind:"v", unit:u.unit, level:u.level, w, r, pos, m};
+      unit.ids.push("v:"+w);
+    });
+    UNITS.push(unit);
+  });
+  (window.JP_GRAMMAR||[]).forEach(u=>{
+    const unit = {key:u.unit, title:u.title, level:u.level, kind:"g", ids:[]};
+    u.items.forEach(g=>{ const id="g:"+g.id; ITEMS[id] = {...g, id, kind:"g", unit:u.unit, level:u.level}; unit.ids.push(id); });
+    UNITS.push(unit);
+  });
+  const UNIT_MAP = {}; UNITS.forEach(u=>{ UNIT_MAP[u.key]=u; });
+  const VOCAB = Object.values(ITEMS).filter(x=>x.kind==="v");
+  const unitLabel = key => { const u=UNIT_MAP[key]; return u ? u.title : key; };
+
+  /* ---------- 狀態 ---------- */
+  const state = {
+    tab: load("tab","today"),
+    S: load("S",{}),            // 每題學習紀錄 {n 作答, c 答對, wc 答錯次數, st 連續答對, m 已學會, lv, due, cN/cC 錯題單元練習, xN/xC 錯題全單元隨機}
+    settings: Object.assign({exam:EXAM_DEFAULT, newV:15, newG:3, rate:0.9, autoSpeak:true}, load("settings",{})),
+    pool: load("pool",[]), idx: load("idx",0), sel: load("sel",null), shown: load("shown",false),
+    mode: load("mode",""), round: load("round",{c:0,t:0}), last: load("last",null),
+    diag: load("diag",null), history: load("history",[]), log: load("log",{}),
+    wrongBook: "main", wrongSort: "unit", ovSort: "unit", openUnit: null, openWrong: null, vgTab: "v", msg: ""
+  };
+  function persistQuiz(){ save("pool",state.pool); save("idx",state.idx); save("sel",state.sel); save("shown",state.shown); save("mode",state.mode); save("round",state.round); }
+  const rec = id => state.S[id] || {};
+
+  /* ---------- 朗讀（手機瀏覽器內建日語語音） ---------- */
+  function speak(text){
+    try{
+      if(!window.speechSynthesis) return;
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "ja-JP"; u.rate = state.settings.rate || 0.9;
+      const v = speechSynthesis.getVoices().find(v=>/ja[-_]JP/i.test(v.lang));
+      if(v) u.voice = v;
+      speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  /* ---------- 出題 ---------- */
+  // 讀音干擾選項：模仿 N2「漢字讀法」常見陷阱——長音、促音、濁音、拗音的有無（只動漢字部分，不動送假名）
+  const DAK = {か:"が",き:"ぎ",く:"ぐ",け:"げ",こ:"ご",さ:"ざ",し:"じ",す:"ず",せ:"ぜ",そ:"ぞ",た:"だ",て:"で",と:"ど",は:"ば",ひ:"び",ふ:"ぶ",へ:"べ",ほ:"ぼ"};
+  const UNDAK = {}; Object.keys(DAK).forEach(k=>{ UNDAK[DAK[k]]=k; });
+  const LONG_O = "おこそとのほもよろごぞどぼぽょゅ";
+  const SOKU_NEXT = "かきくけこさしすせそたちつてとぱぴぷぺぽ";
+  function okuriLen(w,r){ let k=0; while(k<w.length && k<r.length && w[w.length-1-k]===r[r.length-1-k] && !hasKanji(w[w.length-1-k])) k++; return k; }
+  function readingVariants(w,r){
+    const ok = okuriLen(w,r), stem = r.slice(0,r.length-ok), tail = r.slice(r.length-ok);
+    const out = new Set(), add = s=>{ if(s && s!==stem) out.add(s+tail); };
+    // 長音、促音陷阱只用在漢語詞（沒有送假名的漢字詞）；動詞、形容詞等訓讀只換清濁音，避免出現「たのうむ」這種不像日文的選項
+    const kango = ok===0 && [...w].every(hasKanji);
+    for(let i=0;i<stem.length;i++){
+      const ch = stem[i], pre = stem.slice(0,i), post = stem.slice(i+1);
+      if(DAK[ch]) add(pre+DAK[ch]+post);
+      if(UNDAK[ch]) add(pre+UNDAK[ch]+post);
+      if(!kango) continue;
+      // 長音：後面接く／き／つ／ち／ん／い／う時屬於同一個漢字音（しょく、ろん），不能插入う
+      if(LONG_O.includes(ch)){ if(post[0]==="う") add(pre+ch+post.slice(1)); else if(!post || !"くきつちんいうゃゅょっ".includes(post[0])) add(pre+ch+"う"+post); }
+      // 促音：實際會變促音的是く／き／つ／ち接 k/s/t/p 行（がく＋こう→がっこう），反向也是（けっか→けつか）
+      if(ch==="っ"){ add(pre+post); add(pre+"つ"+post); }
+      if(i>=2 && SOKU_NEXT.includes(ch) && "くきつち".includes(stem[i-1])) add(stem.slice(0,i-1)+"っ"+ch+post);
+      if("ゅょ".includes(ch)) add(pre+(ch==="ゅ"?"ょ":"ゅ")+post);
+    }
+    return [...out];
+  }
+  // 意思相同或重疊的字不能當干擾選項（例如「危險」對應危ない／危険）
+  function meanParts(m){ return m.replace(/（[^）]*）/g,"").split(/[、，,]/).map(s=>s.trim()).filter(Boolean); }
+  function meanOverlap(a,b){ const pa=meanParts(a), pb=meanParts(b); return pa.some(x=>pb.includes(x)); }
+  function vocabTypes(it){ return hasKanji(it.w) ? ["read","read","write","mean","rev"] : ["mean","rev"]; }
+  function makeQ(id, opt){
+    opt = opt || {};
+    const it = ITEMS[id];
+    if(it.kind==="g"){
+      return {id, kind:"g", type:"gram", prompt:it.q, options:shuffle(it.o), answer:it.o[0], isNew:!!opt.isNew, rv:opt.rv||null};
+    }
+    const types = opt.types ? opt.types.filter(t=>vocabTypes(it).includes(t)) : vocabTypes(it);
+    const type = types.length ? types[Math.floor(Math.random()*types.length)] : "mean";
+    let prompt, sub, answer, cands;
+    if(type==="read"){
+      prompt = it.w; sub = "讀音是？"; answer = it.r;
+      cands = shuffle(readingVariants(it.w,it.r)).slice(0,3);
+      if(cands.length<3){
+        // 不夠 3 個時，補同詞性、長度相近、而且開頭或結尾相同的讀音（例如動詞都以う段結尾），比較不會一眼看穿
+        const others = [...new Set(VOCAB.filter(x=>x.r!==it.r && x.pos===it.pos && Math.abs(x.r.length-it.r.length)<=1)
+          .map(x=>({r:x.r, s:(x.r[0]===it.r[0]?2:0)+(x.r.slice(-1)===it.r.slice(-1)?1:0)+Math.random()*2}))
+          .sort((a,b)=>b.s-a.s).map(o=>o.r))];
+        cands = cands.concat(others.filter(x=>!cands.includes(x)).slice(0,3-cands.length));
+      }
+    } else if(type==="write"){
+      prompt = it.r; sub = `正確的漢字寫法是？（${it.m}）`; answer = it.w;
+      const chars = [...it.w].filter(hasKanji);
+      cands = VOCAB.filter(x=>x.w!==it.w && hasKanji(x.w) && !meanOverlap(x.m,it.m))
+        .map(x=>({w:x.w, s:(x.r===it.r?6:0)+([...x.w].some(c=>chars.includes(c))?3:0)+(x.pos===it.pos?1:0)+(x.w.length===it.w.length?1:0)+Math.random()*2}))
+        .sort((a,b)=>b.s-a.s).slice(0,3).map(o=>o.w);
+    } else if(type==="mean"){
+      prompt = it.w; sub = "意思是？"; answer = it.m;
+      cands = shuffle([...new Set(VOCAB.filter(x=>x.pos===it.pos && !meanOverlap(x.m,it.m)).map(x=>x.m))]).slice(0,3);
+    } else {
+      prompt = it.m; sub = "日文是？"; answer = it.w;
+      cands = shuffle(VOCAB.filter(x=>x.pos===it.pos && x.w!==it.w && !meanOverlap(x.m,it.m)).map(x=>x.w)).slice(0,3);
+    }
+    return {id, kind:"v", type, prompt, sub, options:shuffle([answer,...cands]), answer, isNew:!!opt.isNew, rv:opt.rv||null};
+  }
+  // 沒做過的優先（隨機），其次做過的（隨機）
+  function unseenFirst(ids, key){
+    const k = key || "n";
+    return shuffle(ids.filter(id=>!(rec(id)[k]>0))).concat(shuffle(ids.filter(id=>rec(id)[k]>0)));
+  }
+  function startRound(qs, mode){
+    if(!qs.length) return;
+    state.pool = qs; state.idx = 0; state.sel = null; state.shown = false;
+    state.mode = mode; state.round = {c:0,t:0};
+    persistQuiz(); state.tab = "quiz"; save("tab","quiz"); render(); window.scrollTo(0,0);
+  }
+  function startUnit(key){
+    const u = UNIT_MAP[key]; if(!u) return;
+    startRound(unseenFirst(u.ids).slice(0,20).map(id=>makeQ(id,{isNew:!(rec(id).n>0)})), "unit:"+key);
+  }
+  function startMixed(kind){
+    const ids = Object.keys(ITEMS).filter(id=>ITEMS[id].kind===kind && rec(id).n>0);
+    startRound(shuffle(ids).slice(0,20).map(id=>makeQ(id)), "mix:"+kind);
+  }
+  function dueIds(){ const t=todayStr(); return Object.keys(ITEMS).filter(id=>{ const r=rec(id); return r.n>0 && r.due && r.due<=t; }); }
+  function newIds(kind, n){
+    // 依單元順序（N3複習 → N2）排出還沒學過的
+    const out = [];
+    UNITS.filter(u=>u.kind===kind).forEach(u=>u.ids.forEach(id=>{ if(!(rec(id).n>0)) out.push(id); }));
+    return out.slice(0, n);
+  }
+  function todayPlan(){
+    const L = state.log[todayStr()] || {n:0,c:0,nv:0,ng:0};
+    const nv = Math.max(0, state.settings.newV - (L.nv||0)), ng = Math.max(0, state.settings.newG - (L.ng||0));
+    const due = dueIds();
+    return {L, due, nv:newIds("v",nv), ng:newIds("g",ng)};
+  }
+  function startToday(){
+    const p = todayPlan();
+    const reviews = shuffle(p.due).slice(0,40).map(id=>makeQ(id));
+    const fresh = [...p.nv, ...p.ng].map(id=>makeQ(id,{isNew:true}));
+    startRound(reviews.concat(fresh), "today");
+  }
+  function startDiag(){
+    const v3 = VOCAB.filter(x=>x.level==="N3").map(x=>x.id);
+    const g3 = Object.keys(ITEMS).filter(id=>ITEMS[id].kind==="g" && ITEMS[id].level==="N3");
+    const qs = shuffle(v3).slice(0,20).map(id=>makeQ(id,{types:["read","mean"]}))
+      .concat(shuffle(g3).slice(0,10).map(id=>makeQ(id)));
+    startRound(qs, "diag");
+  }
+
+  /* ---------- 作答紀錄 ---------- */
+  function record(q, ok){
+    const s = {n:0,c:0,wc:0,st:0,lv:0, ...rec(q.id)};
+    s.n++; if(ok) s.c++;
+    if(ok){
+      s.lv = Math.min((s.lv||0)+1, INTERVALS.length); s.due = addDays(INTERVALS[s.lv-1]);
+      if(s.wc>0 && !s.m){ s.st=(s.st||0)+1; if(s.st>=3) s.m = true; }   // 錯題連續答對 3 次 → 已學會
+    } else {
+      s.wc = (s.wc||0)+1; s.st = 0; s.m = false; s.lv = 0; s.due = addDays(1);
+    }
+    if(q.rv){ const [nK,cK] = q.rv==="mix" ? ["xN","xC"] : ["cN","cC"]; s[nK]=(s[nK]||0)+1; if(ok) s[cK]=(s[cK]||0)+1; }
+    s.t = new Date().toISOString();
+    state.S[q.id] = s; save("S", state.S);
+    const d = todayStr(), L = state.log[d] || {n:0,c:0,nv:0,ng:0};
+    L.n++; if(ok) L.c++;
+    if(q.isNew){ if(q.kind==="v") L.nv=(L.nv||0)+1; else L.ng=(L.ng||0)+1; }
+    state.log[d] = L; save("log", state.log);
+    state.round = {c:state.round.c+(ok?1:0), t:state.round.t+1};
+  }
+  function finishRound(){
+    if(state.round.t>0){
+      const entry = {date:todayStr(), mode:state.mode, c:state.round.c, t:state.round.t};
+      state.history = [entry, ...state.history].slice(0,300); save("history", state.history);
+      if(state.mode==="diag"){
+        const res = {date:todayStr(), vc:0, vt:0, gc:0, gt:0};
+        state.pool.slice(0, state.idx+1).forEach(q=>{ if(q.ans===undefined) return; if(q.kind==="v"){ res.vt++; if(q.ans) res.vc++; } else { res.gt++; if(q.ans) res.gc++; } });
+        state.diag = res; save("diag", res);
+      }
+      state.last = entry; save("last", entry);
+    }
+    const back = state.mode.startsWith("wrong") ? "wrong" : state.mode.startsWith("unit:g") || state.mode==="mix:g" ? "grammar" : state.mode.startsWith("unit:v") || state.mode==="mix:v" ? "vocab" : "today";
+    state.pool = []; state.idx = 0; state.sel = null; state.shown = false;
+    persistQuiz(); state.tab = back; save("tab", back);
+  }
+
+  /* ---------- 統計 ---------- */
+  function progOf(ids){
+    let seen=0, n=0, c=0;
+    ids.forEach(id=>{ const r=rec(id); if(r.n>0){ seen++; n+=r.n; c+=r.c||0; } });
+    const total = ids.length;
+    return {seen, total, cov: total?Math.round(seen/total*100):0, accC:c, accT:n, acc: n?Math.round(c/n*100):null};
+  }
+  function accStatus(pct, target, warn){
+    target = target || ACC_TARGET; warn = warn || 60;
+    if(pct===null || pct===undefined) return {color:"#9a9488", icon:"—"};
+    if(pct>=target) return {color:"#3F7D5C", icon:"✅"};
+    if(pct>=warn) return {color:"#A8631F", icon:"⚠️"};
+    return {color:"#B9554A", icon:"🔥"};
+  }
+  function svgRing(pct, color, label){
+    const size=92, stroke=10, r=(size-stroke)/2, c=size/2, circ=2*Math.PI*r;
+    const p = pct===null ? 0 : Math.max(0,Math.min(100,pct));
+    return `<div style="text-align:center;">
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="display:block;margin:0 auto;">
+        <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="#EFE8DA" stroke-width="${stroke}"/>
+        ${pct!==null ? `<circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${(circ*(1-p/100)).toFixed(1)}" transform="rotate(-90 ${c} ${c})"/>` : ""}
+        <text x="${c}" y="${c+6}" text-anchor="middle" font-size="19" font-weight="700" fill="#2B2620">${pct===null?"—":pct+"%"}</text>
+      </svg>
+      <div style="font-size:11.5px;color:#6b6356;margin-top:4px;">${label}</div>
+    </div>`;
+  }
+  function ovRow(label, title, item, attrs, target, warn){
+    target = target || ACC_TARGET;
+    const st = accStatus(item.acc, target, warn);
+    return `<div class="ov-row" ${attrs||""}>
+      <div class="ov-label"><b>${esc(label)}</b> ${esc(title)} ${attrs?'<span class="ov-go">›</span>':""}</div>
+      <div class="ov-line"><span class="ov-k">刷題</span><div class="ov-track"><div class="ov-fill" style="width:${item.cov}%;background:#5B6B82;"></div></div><span class="ov-v">${item.cov}%</span></div>
+      <div class="ov-line"><span class="ov-k">正確</span><div class="ov-track">${item.acc===null?"":`<div class="ov-fill" style="width:${item.acc}%;background:${st.color};"></div>`}<div class="ov-target" style="left:${target}%;"></div></div><span class="ov-v">${item.acc===null?"—":st.icon+" "+item.acc+"%"}</span></div>
+    </div>`;
+  }
+  function legend(target, warn){
+    return `<div class="ov-legend"><span><i style="background:#5B6B82;"></i>刷題率（目標100%）</span><span><i style="background:#3F7D5C;"></i>正確率（✅≥${target}% ⚠️${warn}~${target-1}% 🔥<${warn}%）</span><span><i class="tl"></i>${target}%目標線</span></div>`;
+  }
+  const unitSorters = {
+    unit: (a,b)=>a.order-b.order,
+    acc: (a,b)=>((a.prog.acc===null?101:a.prog.acc)-(b.prog.acc===null?101:b.prog.acc)) || a.order-b.order,
+    accDesc: (a,b)=>((b.prog.acc===null?-1:b.prog.acc)-(a.prog.acc===null?-1:a.prog.acc)) || a.order-b.order,
+    cov: (a,b)=>a.prog.cov-b.prog.cov || a.order-b.order,
+    covDesc: (a,b)=>b.prog.cov-a.prog.cov || a.order-b.order,
+  };
+  function sortBtns(cur, keys, act){
+    const names = {unit:"依單元", acc:"正確率低→高", accDesc:"正確率高→低", cov:"刷題率低→高", covDesc:"刷題率高→低"};
+    return `<div class="toggle-row" style="margin:6px 0 8px;">${keys.map(k=>`<button class="toggle-btn ${cur===k?"active":""}" data-act="${act}" data-arg="${k}" style="flex:1 1 30%;">${names[k]}</button>`).join("")}</div>`;
+  }
+
+  // 錯題本：答錯過（wc>0）的題目依單元分組；刷題＝待複習題中在「練這單元」做過的比例，正確＝錯題單元練習的累計答對率
+  function wrongProg(list, nK, cK){
+    const pending = list.filter(id=>!rec(id).m);
+    const seen = pending.filter(id=>(rec(id)[nK]||0)>0).length;
+    let c=0, n=0; list.forEach(id=>{ n+=rec(id)[nK]||0; c+=rec(id)[cK]||0; });
+    const total = pending.length;
+    return {seen, total, cov: total?Math.round(seen/total*100):100, accC:c, accT:n, acc: n?Math.round(c/n*100):null};
+  }
+  function wrongReached(p){ return p.total===0 || (p.cov>=100 && p.acc!==null && p.acc>=WRONG_ACC_TARGET); }
+  function wrongData(){
+    const all = Object.keys(ITEMS).filter(id=>rec(id).wc>0);
+    const units = UNITS.map((u,i)=>{
+      const list = all.filter(id=>ITEMS[id].unit===u.key);
+      const pending = list.filter(id=>!rec(id).m).sort((a,b)=>(rec(b).wc||0)-(rec(a).wc||0));
+      return {key:u.key, order:i, list, pending, learned:list.length-pending.length, prog:wrongProg(list,"cN","cC")};
+    }).filter(u=>u.list.length>0);
+    return {units, all, pendingAll: all.filter(id=>!rec(id).m), learnedAll: all.filter(id=>rec(id).m), chAll: wrongProg(all,"cN","cC"), mix: wrongProg(all,"xN","xC")};
+  }
+
+  /* ---------- 畫面 ---------- */
+  const root = document.getElementById("app");
+  function render(){
+    const days = daysUntil(state.settings.exam);
+    const n2 = progOf(Object.keys(ITEMS).filter(id=>ITEMS[id].level==="N2"));
+    if(state.tab==="quiz" && !state.pool.length) state.tab = "today";
+    root.innerHTML = `
+      <div class="header">
+        <div class="header-top">
+          <div><div class="kicker">JLPT N2 合格計畫</div><div class="h1">日語讀書App</div></div>
+          <div class="exam-badge"><div class="exam-num">${days>=0?days:"—"}</div><div class="exam-label">距考試（天）</div></div>
+        </div>
+        <div class="progress-outer"><div class="progress-inner" style="width:${n2.cov}%"></div></div>
+        <div style="font-size:11px;color:#cfc8b8;margin-top:4px;">N2 題庫已學 ${n2.seen}/${n2.total}（${n2.cov}%）</div>
+      </div>
+      <main>${renderTab()}</main>
+      ${renderNav()}`;
+  }
+  function renderNav(){
+    const wc = Object.keys(ITEMS).filter(id=>rec(id).wc>0 && !rec(id).m).length;
+    const tabs = [["today","☀","今日"],["vocab","字","單字"],["grammar","文","文法"],["wrong","★","錯題本"],["overview","◆","總覽"],["settings","⚙","設定"]];
+    const cur = state.tab==="quiz" ? "" : state.tab;
+    return `<nav class="nav">${tabs.map(([k,ic,l])=>`<button class="nav-btn ${cur===k?"active":""}" data-act="tab" data-arg="${k}"><span class="nav-icon">${ic}${k==="wrong"&&wc?`<span class="nav-badge">${wc}</span>`:""}</span><span>${l}</span></button>`).join("")}</nav>`;
+  }
+  function renderTab(){
+    const resume = state.pool.length && state.tab!=="quiz"
+      ? `<div class="card accent">有一輪練習還沒做完（第 ${state.idx+1} / ${state.pool.length} 題）<button class="primary-btn" data-act="tab" data-arg="quiz" style="margin-top:8px;">繼續作答</button></div>` : "";
+    switch(state.tab){
+      case "quiz": return renderQuiz();
+      case "vocab": return resume + renderUnits("v");
+      case "grammar": return resume + renderUnits("g");
+      case "wrong": return resume + renderWrong();
+      case "overview": return resume + renderOverview();
+      case "settings": return renderSettings();
+      default: return resume + renderToday();
+    }
+  }
+
+  function stagePlan(){
+    const d = todayStr();
+    if(d < "2027-01-01") return ["11～12月：喚醒 N3", "先把 N3 單字、文法找回來，同時開始 N2 單字。程度檢測錯的題目會在錯題本，優先清掉。"];
+    if(d < "2027-05-01") return ["1～4月：N2 主力", "每天固定新單字＋新文法，複習到期的題目一定要做完。單元正確率拉到 80% 以上。"];
+    if(d < "2027-06-01") return ["5月：讀解・聽解", "單字文法維持每日複習，加入讀解與聽解練習（之後版本加入）。"];
+    return ["6月～考前：衝刺", "錯題本全部練到刷題 100%、正確率 95%，弱單元重刷。"];
+  }
+  function renderToday(){
+    const p = todayPlan(), L = p.L;
+    const [stTitle, stBody] = stagePlan();
+    const nV3 = VOCAB.filter(x=>x.level==="N3").length, nV2 = VOCAB.length-nV3;
+    const gs = Object.values(ITEMS).filter(x=>x.kind==="g"), nG3 = gs.filter(x=>x.level==="N3").length;
+    const lastCard = state.last ? `<div class="result-card">上一輪結果：${state.last.c} / ${state.last.t} 答對（${Math.round(state.last.c/state.last.t*100)}%）</div>` : "";
+    const diag = state.diag;
+    const diagCard = !diag
+      ? `<div class="card accent"><div style="font-weight:700;margin-bottom:6px;">🧭 先做程度檢測</div>
+          <div style="font-size:13px;line-height:1.6;color:#4a4538;">N3 程度的單字 20 題＋文法 10 題，約 10 分鐘。看你忘了哪些，答錯的題目自動進錯題本。</div>
+          <button class="primary-btn" data-act="diag" style="margin-top:10px;">開始程度檢測（30 題）</button></div>`
+      : `<div class="card"><div style="font-weight:700;margin-bottom:6px;">🧭 程度檢測結果（${diag.date}）</div>
+          <div style="font-size:13.5px;line-height:1.7;">N3 單字：${diag.vc} / ${diag.vt}　N3 文法：${diag.gc} / ${diag.gt}</div>
+          <div style="font-size:12.5px;color:#6b6356;line-height:1.6;margin-top:4px;">${diagAdvice(diag)}</div>
+          <button class="toggle-btn" data-act="diag" style="margin-top:8px;width:100%;flex:none;padding:7px 0;">重新檢測</button></div>`;
+    const total = p.due.length + p.nv.length + p.ng.length;
+    return `
+      ${lastCard}
+      <div class="card">
+        <div style="font-size:12px;color:#A8631F;font-weight:700;">目前階段</div>
+        <div style="font-weight:700;font-size:15px;margin-top:2px;">${stTitle}</div>
+        <div style="font-size:13px;color:#4a4538;line-height:1.6;margin-top:4px;">${stBody}</div>
+      </div>
+      ${diagCard}
+      <div class="section-title">今日任務</div>
+      <div class="card-row">
+        <div class="stat"><div class="stat-label">到期複習</div><div class="stat-value">${p.due.length}</div></div>
+        <div class="stat"><div class="stat-label">新單字</div><div class="stat-value">${p.nv.length}</div></div>
+        <div class="stat"><div class="stat-label">新文法</div><div class="stat-value">${p.ng.length}</div></div>
+      </div>
+      ${total>0 ? `<button class="primary-btn green" data-act="today">▶ 開始今日任務（${Math.min(40,p.due.length)+p.nv.length+p.ng.length} 題）</button>`
+                : `<div class="result-card">🎉 今天的任務都完成了！可以去單字／文法分頁多練幾個單元。</div>`}
+      <div class="section-desc" style="margin-top:0;">今天已作答 ${L.n} 題、答對 ${L.c} 題${L.n?`（${Math.round(L.c/L.n*100)}%）`:""}；新學單字 ${L.nv||0}、文法 ${L.ng||0}。新單字每天 ${state.settings.newV} 個、文法 ${state.settings.newG} 個，可到「設定」調整。</div>
+      <div class="card" style="font-size:12.5px;color:#6b6356;line-height:1.7;">
+        📚 目前題庫：N3複習單字 ${nV3}、N2單字 ${nV2}、N3文法 ${nG3}、N2文法 ${gs.length-nG3}（會分批持續增加）<br>
+        🔊 題目解答旁的喇叭可以聽日語發音。答對的題目依 1→3→7→14→30→60 天自動排入複習。
+      </div>`;
+  }
+  function diagAdvice(d){
+    const v = d.vt?d.vc/d.vt:0, g = d.gt?d.gc/d.gt:0;
+    const tip = x => x>=0.8 ? "還記得不少" : x>=0.6 ? "忘了一部分" : "忘得比較多";
+    let s = `單字${tip(v)}、文法${tip(g)}。`;
+    if(v<0.8) s += "先把「N3複習」三個單字單元刷完再全力衝 N2。";
+    else s += "N3 單字底子還在，可以把每日新單字調高，盡快進入 N2。";
+    if(g<0.8) s += "文法建議先刷「N3文法複習」單元。";
+    return s;
+  }
+
+  function renderUnits(kind){
+    const units = UNITS.filter(u=>u.kind===kind).map((u,i)=>({...u, order:i, prog:progOf(u.ids)}));
+    const learnedN = units.reduce((s,u)=>s+u.prog.seen,0), totalN = units.reduce((s,u)=>s+u.prog.total,0);
+    const name = kind==="v" ? "單字" : "文法";
+    return `
+      <div class="section-title">${name}</div>
+      <div class="section-desc">每個單元按「▶ 練習」一輪 20 題，沒學過的優先出；第一次出現的${name}會先給你看${kind==="v"?"讀音和意思（可聽發音）":"句型說明和例句"}再作答。已學 ${learnedN} / ${totalN}。</div>
+      ${learnedN>0 ? `<button class="primary-btn gray" data-act="mix" data-arg="${kind}">🎲 已學過的${name}隨機 20 題</button>` : ""}
+      <div class="ov-card">
+        ${units.map(u=>{
+          const open = state.openUnit===u.key;
+          return `<div>
+            ${ovRow(u.level, u.title+`（${u.prog.seen}/${u.prog.total}）`, u.prog, `data-act="open" data-arg="${u.key}"`)}
+            <div class="unit-actions">
+              <button class="toggle-btn active" data-act="unit" data-arg="${u.key}">▶ 練習（20 題）</button>
+              <button class="toggle-btn" data-act="open" data-arg="${u.key}">${open?"▲ 收起":(kind==="v"?"📖 單字表":"📖 句型表")}</button>
+            </div>
+            ${open ? (kind==="v" ? renderVocabList(u.ids) : renderGrammarList(u.ids)) : ""}
+          </div>`;
+        }).join("")}
+      </div>`;
+  }
+  function statTag(id){ const r=rec(id); if(!(r.n>0)) return "未學"; return `${r.c}/${r.n}`+(r.wc>0&&!r.m?" ❗":""); }
+  function renderVocabList(ids){
+    return ids.map(id=>{ const it=ITEMS[id]; return `<div class="item-row">
+      <span class="w jp">${esc(it.w)}<br><span class="r">${it.w!==it.r?esc(it.r):""}</span></span>
+      <span class="m">${esc(it.m)} <span style="color:#9a9488;font-size:11px;">${POS[it.pos]||""}</span></span>
+      <span class="st">${statTag(id)}</span>
+      <button class="speak-btn" data-act="speak" data-arg="${esc(it.r)}">🔊</button></div>`; }).join("");
+  }
+  function renderGrammarList(ids){
+    return ids.map(id=>{ const g=ITEMS[id]; return `<div class="gram-card">
+      <div><span class="gp jp">${esc(g.p)}</span>　${esc(g.m)} <span style="float:right;font-size:11px;color:#9a9488;">${statTag(id)}</span></div>
+      <div class="gc jp">接續：${esc(g.c)}</div>
+      <div class="jp">${esc(g.ex)} <button class="speak-btn" data-act="speak" data-arg="${esc(g.ex)}">🔊</button></div>
+      <div style="color:#6b6356;font-size:12.5px;">${esc(g.exz)}</div></div>`; }).join("");
+  }
+
+  function modeTitle(){
+    const m = state.mode;
+    if(m==="today") return "今日任務";
+    if(m==="diag") return "程度檢測";
+    if(m.startsWith("unit:")) return unitLabel(m.slice(5));
+    if(m==="mix:v") return "單字隨機";
+    if(m==="mix:g") return "文法隨機";
+    if(m.startsWith("wrongunit:")) return unitLabel(m.slice(10))+" 錯題加強";
+    if(m==="wrongmix") return "全單元錯題隨機";
+    if(m==="wronglearned") return "已學會抽考";
+    return "練習";
+  }
+  function renderQuiz(){
+    const q = state.pool[state.idx];
+    const it = ITEMS[q.id];
+    const head = `<div class="quiz-progress">${modeTitle()}　第 ${state.idx+1} / ${state.pool.length} 題 · 答對 ${state.round.c}</div>`;
+    const exitBtn = `<button class="primary-btn gray" data-act="exit">🚪 先停在這裡（已作答的都有記錄）</button>`;
+    // 第一次學的題目：先看學習卡
+    if(q.isNew && !state.shown && state.sel===null){
+      const body = it.kind==="v"
+        ? `<div class="flash-word jp">${esc(it.w)}</div>
+           ${it.w!==it.r?`<div class="flash-read jp">${esc(it.r)}</div>`:""}
+           <div class="flash-mean">${esc(it.m)}　<span style="font-size:12px;color:#9a9488;">${POS[it.pos]||""}</span></div>
+           <div style="text-align:center;margin-bottom:14px;"><button class="speak-btn" data-act="speak" data-arg="${esc(it.r)}">🔊 聽發音</button></div>`
+        : `<div class="flash-word jp" style="font-size:28px;">${esc(it.p)}</div>
+           <div class="flash-mean">${esc(it.m)}</div>
+           <div class="explain jp" style="font-size:14px;">接續：${esc(it.c)}<br>${esc(it.ex)}<br><span style="color:#6b6356;">${esc(it.exz)}</span>
+             <div style="margin-top:6px;"><button class="speak-btn" data-act="speak" data-arg="${esc(it.ex)}">🔊 聽例句</button></div></div>`;
+      return `${head}<div class="quiz-card"><div class="quiz-tag">${esc(unitLabel(it.unit))}<span class="new-badge">新${it.kind==="v"?"單字":"文法"}</span></div>${body}
+        <button class="primary-btn" data-act="learned">記住了，開始作答</button></div>${exitBtn}`;
+    }
+    const revealed = state.sel!==null;
+    const typeName = {read:"漢字讀音", write:"漢字寫法", mean:"意思", rev:"中翻日", gram:"文法"}[q.type];
+    const promptCls = q.type==="gram" ? "sentence jp" : q.type==="rev" ? "zh" : "jp";
+    const opts = q.options.map((o,i)=>{
+      let cls = "";
+      if(revealed){ if(o===q.answer) cls="correct"; else if(i===state.sel) cls="wrong"; }
+      return `<button class="quiz-option ${cls} ${q.type==="mean"?"":"jp"}" data-act="choose" data-arg="${i}"><span class="opt-label">${i+1}</span><span>${esc(o)}</span></button>`;
+    }).join("");
+    let explain = "";
+    if(revealed){
+      const ok = q.options[state.sel]===q.answer;
+      explain = it.kind==="v"
+        ? `<div class="explain ${ok?"":"bad"}"><div class="explain-head">${ok?"✅ 答對了":"❌ 答錯了"}</div>
+            <span class="jp" style="font-size:18px;font-weight:700;">${esc(it.w)}</span>${it.w!==it.r?`【<span class="jp">${esc(it.r)}</span>】`:""}　${esc(it.m)} <span style="font-size:12px;color:#9a9488;">${POS[it.pos]||""}</span>
+            <button class="speak-btn" data-act="speak" data-arg="${esc(it.r)}">🔊</button></div>`
+        : `<div class="explain ${ok?"":"bad"}"><div class="explain-head">${ok?"✅ 答對了":"❌ 答錯了"}　正解：<span class="jp">${esc(q.answer)}</span></div>
+            <div class="jp">${esc(it.q.replace("＿＿＿", q.answer))} <button class="speak-btn" data-act="speak" data-arg="${esc(it.q.replace("＿＿＿", q.answer))}">🔊</button></div>
+            <div style="margin-top:6px;"><b class="jp">${esc(it.p)}</b>：${esc(it.m)}</div>
+            <div class="jp" style="font-size:12.5px;color:#6b6356;">接續：${esc(it.c)}</div>
+            <div class="jp" style="font-size:13.5px;margin-top:4px;">例：${esc(it.ex)}</div>
+            <div style="font-size:12.5px;color:#6b6356;">${esc(it.exz)}</div></div>`;
+    }
+    const wcBadge = rec(q.id).wc>0 && !rec(q.id).m ? ` · 錯過 ${rec(q.id).wc} 次` : "";
+    return `${head}
+      <div class="quiz-card">
+        <div class="quiz-tag">${esc(unitLabel(it.unit))} · ${typeName}${wcBadge}</div>
+        <div class="quiz-prompt ${promptCls}">${esc(q.prompt)}</div>
+        ${q.sub ? `<div class="quiz-sub">${esc(q.sub)}</div>` : `<div style="height:6px;"></div>`}
+        ${opts}
+        ${explain}
+        ${revealed ? `<button class="primary-btn" data-act="next">${state.idx+1<state.pool.length?"下一題":"完成本輪"}</button>` : ""}
+      </div>
+      ${exitBtn}`;
+  }
+
+  function renderOverview(){
+    const units = UNITS.map((u,i)=>({...u, order:i, prog:progOf(u.ids)}));
+    const sorted = [...units].sort(unitSorters[state.ovSort]||unitSorters.unit);
+    const allIds = Object.keys(ITEMS);
+    const all = progOf(allIds), st = accStatus(all.acc);
+    const vP = progOf(allIds.filter(id=>ITEMS[id].kind==="v")), gP = progOf(allIds.filter(id=>ITEMS[id].kind==="g"));
+    const reached = units.filter(u=>u.prog.cov>=100 && u.prog.acc!==null && u.prog.acc>=ACC_TARGET).length;
+    return `<div class="ov-card">
+      <div class="section-title" style="margin-top:0;">📊 學習總覽</div>
+      <div class="section-desc" style="margin-top:2px;">目標：全部單元刷題 100%、正確率 ${ACC_TARGET}%</div>
+      <div style="display:flex;justify-content:space-around;margin-top:10px;">
+        ${svgRing(all.cov, "#5B6B82", `整體已學 ${all.seen}/${all.total}`)}
+        ${svgRing(all.acc, st.color, all.acc===null?"尚無作答記錄":`${st.icon} 整體正確率 ${all.accC}/${all.accT}`)}
+      </div>
+      ${legend(ACC_TARGET, 60)}
+      <div class="sub-title">單字・文法</div>
+      ${ovRow("單字", `${vP.total} 個`, vP, `data-act="tab" data-arg="vocab"`)}
+      ${ovRow("文法", `${gP.total} 個`, gP, `data-act="tab" data-arg="grammar"`)}
+      <div class="sub-title">各單元（雙達標 ${reached}/${units.length}）</div>
+      ${sortBtns(state.ovSort, ["unit","acc","accDesc","cov","covDesc"], "ovsort")}
+      <div class="section-desc" style="margin-top:0;">點任一列直接開始練該單元。</div>
+      ${sorted.map(u=>ovRow(u.level, u.title, u.prog, `data-act="unit" data-arg="${u.key}"`)).join("")}
+    </div>`;
+  }
+
+  function wrongCardHtml(id, learned){
+    const it = ITEMS[id], r = rec(id), wc = r.wc||0;
+    const lv = wc>=3 ? " level-high" : wc===2 ? " level-mid" : "";
+    const main = it.kind==="v"
+      ? `<span class="jp" style="font-weight:700;font-size:16px;">${esc(it.w)}</span> ${it.w!==it.r?`<span class="jp" style="color:#A8631F;">${esc(it.r)}</span>`:""}　${esc(it.m)}`
+      : `<span class="jp" style="font-weight:700;">${esc(it.p)}</span>　${esc(it.m)}<div class="jp" style="font-size:12.5px;color:#6b6356;">${esc(it.ex)}</div>`;
+    return `<div class="wrong-card${lv}">
+      <div class="wrong-top"><span class="wrong-count">錯過 ${wc} 次</span><span class="wrong-streak">${learned?"✅ 已學會":`連續答對 ${r.st||0}/3`}</span>${wc>=3?'<span style="color:#B9554A;font-weight:700;">🔥 重點加強</span>':""}</div>
+      <div style="margin-top:4px;">${main} <button class="speak-btn" data-act="speak" data-arg="${esc(it.kind==="v"?it.r:it.ex)}">🔊</button></div>
+      ${learned?"":`<button class="mastered-btn" data-act="master" data-arg="${esc(id)}">已熟記，移到已學會</button>`}
+    </div>`;
+  }
+  function renderWrong(){
+    const wd = wrongData();
+    const tabs = `<div class="toggle-row" style="margin:0 0 4px;">
+      <button class="toggle-btn ${state.wrongBook==="main"?"active":""}" data-act="wbook" data-arg="main">錯題本（${wd.pendingAll.length}）</button>
+      <button class="toggle-btn ${state.wrongBook==="learned"?"active":""}" data-act="wbook" data-arg="learned">已學會（${wd.learnedAll.length}）</button></div>`;
+    if(state.wrongBook==="learned"){
+      const ids = [...wd.learnedAll].sort((a,b)=>(rec(b).wc||0)-(rec(a).wc||0));
+      return `${tabs}
+        <div class="section-desc" style="margin-top:4px;">錯題連續答對 3 次會移到這裡。抽考依答錯次數由多到少出題；在這裡又答錯會回到錯題本。</div>
+        ${ids.length ? `<button class="primary-btn" data-act="wlearned">🎯 已學會抽考（${Math.min(20,ids.length)} 題）</button>` : `<div class="empty-hint">還沒有已學會的錯題。</div>`}
+        ${ids.map(id=>wrongCardHtml(id,true)).join("")}`;
+    }
+    const units = wd.units;
+    const reachedN = units.filter(u=>wrongReached(u.prog)).length;
+    const stage1 = units.length>0 && reachedN===units.length;
+    const mixDone = wrongReached(wd.mix);
+    const st = accStatus(wd.chAll.acc, WRONG_ACC_TARGET, WRONG_ACC_WARN);
+    const sorted = [...units].sort(unitSorters[state.wrongSort]||unitSorters.unit);
+    if(!wd.all.length) return `${tabs}<div class="empty-hint">目前沒有錯題。答錯的題目會自動收進這裡，依單元分類。</div>`;
+    return `${tabs}
+      <div class="ov-card">
+        <div class="section-title" style="margin-top:0;">📊 錯題本總覽</div>
+        <div class="section-desc" style="margin-top:2px;">答錯的題目依單元分類。先每個單元獨立加強，各單元都達標後，再用全單元隨機 20 題混在一起練。<b>錯題目標：刷題 100%、正確率 ${WRONG_ACC_TARGET}%</b></div>
+        <div style="display:flex;justify-content:space-around;margin-top:10px;">
+          ${svgRing(wd.chAll.cov, "#5B6B82", `單元錯題刷題 ${wd.chAll.seen}/${wd.chAll.total}`)}
+          ${svgRing(wd.chAll.acc, st.color, wd.chAll.acc===null?"尚無作答記錄":`${st.icon} 單元錯題正確率 ${wd.chAll.accC}/${wd.chAll.accT}`)}
+        </div>
+        ${legend(WRONG_ACC_TARGET, WRONG_ACC_WARN)}
+        <div class="sub-title">練習流程</div>
+        <div class="section-desc" style="margin-top:0;">① 各單元錯題加強：${reachedN} / ${units.length} 單元達標 ${stage1?"✅":""}</div>
+        ${ovRow("② 全單元隨機", `20 題一輪${mixDone&&wd.mix.total>0?" ✅":""}`, wd.mix, "", WRONG_ACC_TARGET, WRONG_ACC_WARN)}
+        ${stage1 && mixDone ? `<div class="result-card" style="font-weight:600;">🎉 各單元與全單元錯題都練好了！</div>` : ""}
+        ${wd.pendingAll.length ? `<button class="primary-btn ${stage1?"":"gray"}" data-act="wmix" style="margin-top:10px;">🎲 全單元錯題隨機 20 題</button>
+          <div class="section-desc" style="margin-top:6px;">${stage1?"各單元都達標了，用全單元隨機把錯題練到正確率 "+WRONG_ACC_TARGET+"%。":"建議先把下面各單元練到達標（還差 "+(units.length-reachedN)+" 個），再做全單元隨機。"}</div>` : ""}
+        <div class="sub-title">各單元錯題（${wd.pendingAll.length} 題待複習）</div>
+        ${sortBtns(state.wrongSort, ["unit","cov","acc"], "wsort")}
+        ${sorted.map(u=>{
+          const open = state.openWrong===u.key, n = u.pending.length;
+          return `<div style="margin-bottom:4px;">
+            ${ovRow(UNIT_MAP[u.key].level, `${unitLabel(u.key)}（待複習 ${n}・已學會 ${u.learned}）${wrongReached(u.prog)?" ✅":""}`, u.prog, `data-act="wopen" data-arg="${u.key}"`, WRONG_ACC_TARGET, WRONG_ACC_WARN)}
+            <div class="unit-actions">
+              ${n ? `<button class="toggle-btn active" data-act="wunit" data-arg="${u.key}">▶ 練這單元（${Math.min(20,n)} 題）</button>` : `<button class="toggle-btn" disabled>都已學會</button>`}
+              <button class="toggle-btn" data-act="wopen" data-arg="${u.key}">${open?"▲ 收起":"📋 看題目"}</button>
+            </div>
+            ${open ? u.pending.map(id=>wrongCardHtml(id,false)).join("") : ""}
+          </div>`;
+        }).join("")}
+      </div>`;
+  }
+
+  function renderSettings(){
+    const s = state.settings;
+    return `
+      <div class="section-title">設定</div>
+      <div class="card">
+        <label class="label">考試日期</label><input class="text-input" type="date" id="setExam" value="${esc(s.exam)}">
+        <label class="label">每天新單字數</label><input class="text-input" type="number" min="0" max="100" id="setNewV" value="${s.newV}">
+        <label class="label">每天新文法數</label><input class="text-input" type="number" min="0" max="20" id="setNewG" value="${s.newG}">
+        <label class="label">發音速度（${s.rate}）</label><input type="range" min="0.5" max="1.3" step="0.1" id="setRate" value="${s.rate}" style="width:100%;">
+        <label class="label"><input type="checkbox" id="setAuto" ${s.autoSpeak?"checked":""}> 作答後自動唸出答案</label>
+        <button class="primary-btn" data-act="saveSettings" style="margin-top:10px;">儲存設定</button>
+        <button class="toggle-btn" data-act="speak" data-arg="こんにちは。日本語能力試験N2に合格しましょう。" style="width:100%;margin-top:8px;padding:8px 0;">🔊 測試發音</button>
+      </div>
+      <div class="section-title">備份／還原</div>
+      <div class="section-desc">學習紀錄存在這支手機的瀏覽器裡。換手機或清除瀏覽器資料前，先按「產生備份碼」複製起來（可以貼到 LINE 或記事本）。</div>
+      <div class="card">
+        <button class="primary-btn" data-act="export">產生備份碼</button>
+        <textarea class="text-area" id="backupBox" placeholder="備份碼會出現在這裡；要還原時把備份碼貼進來，再按「還原」"></textarea>
+        <button class="primary-btn gray" data-act="import" style="margin-top:8px;">還原</button>
+        ${state.msg ? `<div style="font-size:12.5px;color:#A8631F;margin-top:8px;">${esc(state.msg)}</div>` : ""}
+      </div>`;
+  }
+
+  /* ---------- 事件 ---------- */
+  const BACKUP_KEYS = ["S","settings","diag","history","log","last"];
+  root.addEventListener("click", e=>{
+    const el = e.target.closest("[data-act]"); if(!el || el.disabled) return;
+    const act = el.dataset.act, arg = el.dataset.arg;
+    state.msg = "";
+    switch(act){
+      case "tab": state.tab = arg; save("tab", arg); render(); window.scrollTo(0,0); return;
+      case "speak": speak(arg); return;
+      case "diag": startDiag(); return;
+      case "today": startToday(); return;
+      case "unit": startUnit(arg); return;
+      case "mix": startMixed(arg); return;
+      case "open": state.openUnit = state.openUnit===arg ? null : arg; break;
+      case "ovsort": state.ovSort = arg; break;
+      case "wsort": state.wrongSort = arg; break;
+      case "wbook": state.wrongBook = arg; break;
+      case "wopen": state.openWrong = state.openWrong===arg ? null : arg; break;
+      case "wunit": {
+        const u = wrongData().units.find(x=>x.key===arg); if(!u) return;
+        startRound(unseenFirst(u.pending,"cN").slice(0,20).map(id=>makeQ(id,{rv:"ch"})), "wrongunit:"+arg); return;
+      }
+      case "wmix": startRound(unseenFirst(wrongData().pendingAll,"xN").slice(0,20).map(id=>makeQ(id,{rv:"mix"})), "wrongmix"); return;
+      case "wlearned": {
+        const ids = wrongData().learnedAll.sort((a,b)=>(rec(b).wc||0)-(rec(a).wc||0)).slice(0,20);
+        startRound(ids.map(id=>makeQ(id)), "wronglearned"); return;
+      }
+      case "master": { const r = rec(arg); state.S[arg] = {...r, m:true, st:3}; save("S", state.S); break; }
+      case "learned": state.shown = true; persistQuiz(); break;
+      case "choose": {
+        if(state.sel!==null) return;
+        const q = state.pool[state.idx], i = parseInt(arg,10);
+        state.sel = i; q.ans = q.options[i]===q.answer;
+        record(q, q.ans); persistQuiz();
+        if(state.settings.autoSpeak){ const it = ITEMS[q.id]; speak(it.kind==="v" ? it.r : it.q.replace("＿＿＿", it.o[0])); }
+        break;
+      }
+      case "next":
+        if(state.idx+1 < state.pool.length){ state.idx++; state.sel = null; state.shown = false; persistQuiz(); }
+        else finishRound();
+        render(); window.scrollTo(0,0); return;
+      case "exit": finishRound(); render(); window.scrollTo(0,0); return;
+      case "saveSettings": {
+        const s = state.settings;
+        s.exam = document.getElementById("setExam").value || EXAM_DEFAULT;
+        s.newV = Math.max(0, parseInt(document.getElementById("setNewV").value,10)||0);
+        s.newG = Math.max(0, parseInt(document.getElementById("setNewG").value,10)||0);
+        s.rate = parseFloat(document.getElementById("setRate").value)||0.9;
+        s.autoSpeak = document.getElementById("setAuto").checked;
+        save("settings", s); state.msg = "已儲存設定"; break;
+      }
+      case "export": {
+        const data = {app:"jpapp", v:1, at:new Date().toISOString()};
+        BACKUP_KEYS.forEach(k=>{ data[k] = state[k]; });
+        const json = JSON.stringify(data);
+        try{ if(navigator.clipboard) navigator.clipboard.writeText(json); }catch(err){}
+        state.msg = "備份碼已產生（也已嘗試複製到剪貼簿）；若沒複製成功，請長按文字框全選複製";
+        render(); document.getElementById("backupBox").value = json; return;
+      }
+      case "import": {
+        try{
+          const data = JSON.parse(document.getElementById("backupBox").value);
+          if(data.app!=="jpapp") throw new Error("not jpapp");
+          BACKUP_KEYS.forEach(k=>{ if(data[k]!==undefined){ state[k] = k==="settings" ? Object.assign({}, state.settings, data[k]) : data[k]; save(k, state[k]); } });
+          state.msg = "已還原學習紀錄";
+        }catch(err){ state.msg = "備份碼格式不對，請確認有完整貼上"; }
+        break;
+      }
+    }
+    render();
+  });
+  if(window.speechSynthesis) try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = ()=>{}; }catch(e){}
+  render();
+})();
+</script>
+</body>
+</html>
